@@ -14,12 +14,8 @@
     <h1>{{ article.title }}</h1>
     <p>Created by {{ article.author }} ({{ article.category|default_if_none:'Без категории' }})
         at {{ article.created_at|date:'d.m.Y H:i:s' }}</p>
-    <div class="pre">{{ article.text }}</div>
+    <div class="pre">{{ article.text }}{{ article.status }}</div>
     <hr/>
-
-    {% for tag in article.tags.all %}
-        <p>Tag: {{ tag }}</p>
-    {% endfor %}
 
     <h3>Comments:</h3>
     {% if is_paginated %}

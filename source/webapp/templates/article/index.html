@@ -21,8 +21,12 @@
                 <a href="{% url 'article_update' article.pk %}">Edit</a>
                 <a href="{% url "article_delete" article.pk %}">Delete</a>
             </p>
+            {% for tag in article.tags.all %}
+                <a href="?tag={{ tag }}"> {{ tag }}</a>
+            {% endfor %}
             <hr/>
         {% endfor %}
+
         {% if is_paginated %}
             {% include 'partial/pagination.html' %}
         {% endif %}

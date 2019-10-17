@@ -15,38 +15,37 @@ class IndexView(ListView):
     model = Article
     template_name = 'article/index.html'
     ordering = ['-created_at']
-    paginate_by = 5
+    paginate_by = 3
     paginate_orphans = 1
 
     def get(self, request, *args, **kwargs):
         self.form = self.get_search_form()
-        self.search_query = self.get_search_query()
+        self.search_value = self.get_search_value()
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(object_list=object_list, **kwargs)
-        if self.search_query:
-            context['query'] = urlencode({'search': self.search_query})
         context['form'] = self.form
-        context['archived_articles'] = self.get_archived_articles()
+        # context['archived_articles'] = self.model.objects.filter(status__icontains=STATUS_ARCHIVED)
+        # context['active_articles'] = self.model.objects.filter(status__icontains=STATUS_ACTIVE)
+        if self.search_value:
+            context['query'] = urlencode({'search': self.search_value})
+        tag_filter = self.request.GET
+        if 'tag' in tag_filter:
+            context['articles'] = Article.objects.filter(tags__name=tag_filter.get('tag'))
         return context
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(status=STATUS_ACTIVE)
-        if self.search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=self.search_query) | Q(author__icontains=self.search_query)
-            )
-        return queryset
-
-    def get_archived_articles(self):
-        queryset = super().get_queryset().filter(status=STATUS_ARCHIVED)
+        queryset = super().get_queryset()
+        if self.search_value:
+            query = Q(tags__name__iexact=self.search_value)
+            queryset = queryset.filter(query)
         return queryset
 
     def get_search_form(self):
         return SimpleSearchForm(self.request.GET)
 
-    def get_search_query(self):
+    def get_search_value(self):
         if self.form.is_valid():
             return self.form.cleaned_data['search']
         return None
@@ -139,4 +138,7 @@ class ArticleDeleteView(DeleteView):
         self.object = self.get_object()
         self.object.status = STATUS_ARCHIVED
         self.object.save()
+        print(self.object.status)
         return redirect(self.get_success_url())
+
+
