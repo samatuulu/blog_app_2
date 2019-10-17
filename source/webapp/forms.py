@@ -3,9 +3,11 @@ from webapp.models import Article, Comment, STATUS_ACTIVE
 
 
 class ArticleForm(forms.ModelForm):
+    tag = forms.CharField(max_length=31, label='Тег', required=False)
+
     class Meta:
         model = Article
-        exclude = ['created_at', 'updated_at']
+        exclude = ['created_at', 'updated_at', 'tags']
 
 
 class CommentForm(forms.ModelForm):
@@ -28,3 +30,7 @@ class ArticleCommentForm(forms.ModelForm):
 
 class SimpleSearchForm(forms.Form):
     search = forms.CharField(max_length=100, required=False, label="Найти")
+
+
+# class TagForms(forms.ModelForm):
+#     tags = forms.CharField(max_length=31, label='Тег', required=False)
