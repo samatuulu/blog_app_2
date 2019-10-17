@@ -16,6 +16,11 @@
         at {{ article.created_at|date:'d.m.Y H:i:s' }}</p>
     <div class="pre">{{ article.text }}</div>
     <hr/>
+
+    {% for tag in article.tags.all %}
+        <p>Tag: {{ tag }}</p>
+    {% endfor %}
+
     <h3>Comments:</h3>
     {% if is_paginated %}
         {% include 'partial/pagination.html' %}

@@ -3,7 +3,7 @@ from webapp.models import Article, Comment, STATUS_ACTIVE
 
 
 class ArticleForm(forms.ModelForm):
-    tag = forms.CharField(max_length=31, label='Тег', required=False)
+    tags = forms.CharField(max_length=31, label='Тег', required=False)
 
     class Meta:
         model = Article

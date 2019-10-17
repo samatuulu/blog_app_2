@@ -6,7 +6,7 @@ from django.views.generic import ListView, DetailView, CreateView, \
     UpdateView, DeleteView
 
 from webapp.forms import ArticleForm, ArticleCommentForm, SimpleSearchForm
-from webapp.models import Article, STATUS_ARCHIVED, STATUS_ACTIVE
+from webapp.models import Article, STATUS_ARCHIVED, STATUS_ACTIVE, Tag
 from django.core.paginator import Paginator
 
 
@@ -35,8 +35,7 @@ class IndexView(ListView):
         queryset = super().get_queryset().filter(status=STATUS_ACTIVE)
         if self.search_query:
             queryset = queryset.filter(
-                Q(title__icontains=self.search_query)
-                | Q(author__icontains=self.search_query)
+                Q(title__icontains=self.search_query) | Q(author__icontains=self.search_query)
             )
         return queryset
 
@@ -80,6 +79,19 @@ class ArticleCreateView(CreateView):
     template_name = 'article/create.html'
     form_class = ArticleForm
 
+    def tag_post(self):
+        tags = self.request.POST.get('tags')
+        tag_list = tags.split(',')
+
+        for tag in tag_list:
+            tags, created = Tag.objects.get_or_create(name=tag)
+            self.object.tags.add(tags)
+
+    def form_valid(self, form):
+        self.object = form.save()
+        self.tag_post()
+        return redirect(self.get_success_url())
+
     def get_success_url(self):
         return reverse('article_view', kwargs={'pk': self.object.pk})
 
@@ -89,6 +101,29 @@ class ArticleUpdateView(UpdateView):
     template_name = 'article/update.html'
     context_object_name = 'article'
     form_class = ArticleForm
+
+    def tag_post(self):
+        tags = self.request.POST.get('tags')
+        tag_list = tags.split(',')
+        self.object.tags.clear()
+        for tag in tag_list:
+            tags, created = Tag.objects.get_or_create(name=tag)
+            self.object.tags.add(tags)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class=None)
+        tags = self.object.tags.all().values('name')
+        line = ''
+        print(tags)
+        for tag in tags:
+            line += tag.get('name') + ','
+        form.fields['tags'].initial = line
+        return form
+
+    def form_valid(self, form):
+        self.object = form.save()
+        self.tag_post()
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse('article_view', kwargs={'pk': self.object.pk})
